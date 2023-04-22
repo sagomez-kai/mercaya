@@ -2,8 +2,7 @@ from procesar import crearLista, calcularBarato, continuarLista
 from persistencia import buscar
 from salida import imprimirTienda
 
-# Este código fue inspirado por un déficit crónico de sueño y 
-# un desagrado inexplicable a la nación rumana
+# Este código fue inspirado por un déficit crónico de sueño
 
 def main():
     print('¡Bienvenido a Mercaya!\n\nIngrese el filtro que desea:')
