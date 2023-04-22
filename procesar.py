@@ -1,53 +1,38 @@
 import sqlite3
-from salida import verResultados
+from salida import imprimirResultados
 
 connection = sqlite3.connect('data.db')
 cursor = connection.cursor()
 
-class Producto: #Objeto de producto
+# Objeto de producto
+# Tal vez pruebe ser innecesario, pero por ahora el programa funciona con él
+class Producto:
     def __init__(self, arr):
         self.nombre = arr[0]
         self.tienda = arr[1]
         self.precio = arr[2]
 
-def buscar(entrada): #Buscar entrada del usuario en la base de datos
-    query = 'SELECT * FROM productos WHERE lower(nombre) LIKE "%{}%"'.format(entrada) #Ignorar mayúsculas 
-    cursor.execute(query)
-    resultado = cursor.fetchall()
-    if (resultado): #Solo hacer esto si lo que se buscó está en la base de datos
-        verResultados(resultado)
-        return resultado
-    else: #Hay que arreglar esto para que detenga el programa o pida entrada de nuevo, pero luego
-        print('No se encontró el producto buscado. Intente de nuevo.')
-
-def crearLista(entrada): #Crear la lista de mercado del usuario
-    lista = list() #Crear lista vacía
+def crearLista(entrada): # Crear la lista de mercado del usuario
+    lista = [] # Crear lista vacía
     while True:
         print('Ingrese un número o "t" para terminar su lista.')
         selec = input('> ')
         if (selec == 't'):
             break
         else:
-            i = 0
-            menor = ()
-            producto = entrada[int(selec) - 1]
-            query = 'SELECT * FROM precios WHERE lower(nombre) LIKE "%{}%"'.format(producto[0])
+            producto = entrada[int(selec) - 1] # Esto escoge un producto de
+            # los resultados que da imprimirResultados
+            query = 'SELECT nombre, tienda, precio FROM precios WHERE lower(nombre) LIKE "%{}%"'.format(producto[0])
             cursor.execute(query)
             resultado = cursor.fetchall()
             for dato in resultado:
-                if (i == 0):
-                    menor = dato
-                    i += 1
-                    continue
-                elif (dato[2] < resultado[i - 1][2]):
-                    menor = dato
-                    i += 1
-                else:
-                    i += 1
-            lista.append(Producto(menor)) #Hacer un arreglo de objetos con cada producto
+                lista.append(Producto(dato)) # Hacer un arreglo de objetos de
+                # tipo Producto (ver arriba) con cada resultado
     return lista
             
-def continuarLista(entrada, lista): #Añadir más productos a la lista. Esto es una copia de lo anterior
+def continuarLista(entrada, lista):
+    # Esta función es igual a la de arriba, pero sin un return
+    # Tampoco crea una lista, sino que usa la existente
     print('')
     while True:
         print('Ingrese un número o "t" para terminar su lista.')
@@ -55,55 +40,49 @@ def continuarLista(entrada, lista): #Añadir más productos a la lista. Esto es 
         if (selec == 't'):
             break
         else:
-            i = 0
             producto = entrada[int(selec) - 1]
-            query = 'SELECT * FROM precios WHERE lower(nombre) LIKE "%{}%"'.format(producto[0])
+            query = 'SELECT nombre, tienda, precio FROM precios WHERE lower(nombre) LIKE "%{}%"'.format(producto[0])
             cursor.execute(query)
             resultado = cursor.fetchall()
             for dato in resultado:
-                if (i == 0):
-                    menor = dato
-                    i += 1
-                    continue
-                elif (dato[2] < resultado[i - 1][2]):
-                    menor = dato
-                    i += 1
-                else:
-                    i += 1
-            lista.append(Producto(menor)) #Hacer un arreglo de objetos con cada producto
-            
-            # Define la lista de productos en los supermercados
+                lista.append(Producto(dato))
 
-def calcular():
-  # Obtiene la lista de productos ingresada por el usuario
-  lista = input("Ingrese la lista de productos separados por comas: ").lower().split(",")
-
-  # Calcula el número de productos que se encuentran en cada supermercado
-  num_productos = []
-  for s in lista_productos:
-    num = 0
-    for p in lista:
-      if p in s:
-        num += 1
-    num_productos.append({"supermercado": s["supermercado"], "num": num})
-
-  # Ordena los supermercados por número de productos encontrados (de mayor a menor)
-  supermercados_por_productos = sorted(num_productos, key=lambda x: x["num"], reverse=True)
-
-  # Encuentra el supermercado más barato para la lista de productos
-  precio_minimo = float("inf")
-  supermercado_barato = ""
-  for s in lista_productos:
-    precio_total = 0
-    for p in lista:
-      if p in s and lista.index(p) != -1:
-        precio_total += s[p]
-    if precio_total < precio_minimo:
-      precio_minimo = precio_total
-      supermercado_barato = s["supermercado"]
-
-  # Muestra los resultados al usuario
-  resultado = f"El supermercado con más productos es {supermercados_por_productos[0]['supermercado']}.<br>" + \
-              f"El supermercado más barato para su lista de productos es {supermercado_barato}, con un precio total de {precio_minimo} pesos."
-  print(resultado)
-            
+def calcularBarato(lista):
+    lista.sort(key=lambda x: x.tienda) # Organizar la lista de objetos por
+    # tienda
+    opciones = []
+    precioTienda = 0 # El precio total de los productos elegidos de una tienda
+    numProductos = 0 # Cuántos productos seleccionados tiene una tienda
+    tienda = lista[0].tienda
+    for i in lista: # Obtener los datos de arriba y ponerlos en diccionarios
+        if (tienda == i.tienda):
+            precioTienda += i.precio
+            numProductos += 1
+            razon = precioTienda / numProductos
+        else:
+            opciones.append({'tienda': tienda, 'total': precioTienda,
+                             'num': numProductos, 'razon': razon})
+            tienda = i.tienda
+            precioTienda = i.precio
+            numProductos += 0
+    opciones.append({'tienda': tienda, 'total': precioTienda,
+                     'num': numProductos, 'razon': razon})
+    mejor = opciones[0]
+    for i in opciones: 
+        # Calcular la tienda más barata
+        # Esto usa una razón precio a producto para evitar casos ridículos
+        # como que una tienda tenga 1000 productos por un total de 100 pesos 
+        # y que otra tenga 10 productos a 1 peso.
+        # Si no usáramos razones, el programa
+        # organizaría por precio y creería que la segunda tienda es mejor, pero
+        # obviamente es mejor la tienda con más productos
+        if (i['razon'] < mejor['razon']):
+            mejor = i
+        elif (i['razon'] == mejor['razon']):
+            if (i['num'] > mejor['num']):
+                mejor = i
+            else:
+                continue
+        else:
+            continue
+    return mejor

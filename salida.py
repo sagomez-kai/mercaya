@@ -1,16 +1,12 @@
-def verResultados(resultados): #Imprimir resultados de búsqueda
+def imprimirResultados(resultados): # Imprimir resultados de búsqueda
     i = 1
     print('')
     for entrada in resultados:
-        print(str(i) + ' ' + entrada[0] + '\t' + 'disponible en: ' + str(entrada[1]) + '\t')
+        print(str(i) + ' ' + entrada[0] + '\t' + 'disponible en: ' 
+              + entrada[1] + '\t')
         i += 1
 
-def imprimirBaratos(productos):
-    print('\nEstas son sus mejores opciones para comprar los productos más baratos:')
-    productos.sort(key=lambda x: x.tienda)
-    print(('\n{0: <10}' + '\t' + 'TIENDA' + '\t' + 'PRECIO').format('NOMBRE'))
-    total = 0
-    for i in productos:
-        total += i.precio
-        print(('{0: <10}' + '\t' + str(i.tienda) + '\t' + str(i.precio)).format(str(i.nombre)))
-    print('TOTAL: ' + str(total) + ' pesos.' + '\n')
+def imprimirTienda(datosTienda): # Imprimir la mejor tienda para el usuario
+    print('\nPara conseguir la mayor cantidad de productos al mejor precio, debería comprar en: ')
+    print(datosTienda['tienda'])
+    print('Por un total de: ' + str(datosTienda['total']))
